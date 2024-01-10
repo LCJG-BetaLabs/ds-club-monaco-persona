@@ -244,7 +244,6 @@ df.createOrReplaceTempView("RawSales")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- validate transaction filter, same for imx crm dashboard, provided by imx crm team
 # MAGIC CREATE
 # MAGIC OR REPLACE TEMPORARY VIEW CMSalesProduct AS 
 # MAGIC WITH RawCMSalesProduct AS (
