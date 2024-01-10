@@ -21,18 +21,3 @@ def get_item_list(save=False):
     if save:
         df.to_csv("/dbfs/mnt/dev/customer_segmentation/imx/club_monaco/item_list.csv", index=False)
     return df
-
-# COMMAND ----------
-
-def get_brand_list():
-    df = spark.sql(
-        """
-        select
-            distinct prod_brand,
-            brand_desc
-        from
-            CMSalesProduct a
-        left join imx_prd.imx_dw_train_silver.dbo_viw_lc_xxx_brand_brand b on prod_brand = b.brand_code
-        """
-    )
-    return df
