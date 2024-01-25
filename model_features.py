@@ -34,14 +34,14 @@ first_purchase.createOrReplaceTempView("first_purchase")
 # MAGIC CREATE OR REPLACE TEMP VIEW sales AS
 # MAGIC SELECT 
 # MAGIC   *,
-# MAGIC   CASE WHEN item_subcat_desc = "gift" THEN "GIFT" ELSE item_subcat_desc END AS item_subcat_desc_cleaned,
+# MAGIC   item_subcat_desc AS item_subcat_desc_cleaned,
 # MAGIC   maincat_desc AS maincat_desc_cleaned
 # MAGIC FROM sales0
 # MAGIC WHERE
 # MAGIC   isnull(vip_main_no) = 0 AND vip_main_no != ""
 # MAGIC   AND isnull(prod_brand) = 0 AND prod_brand NOT IN ("JBZZZ", "ZZ")
-# MAGIC   AND isnull(item_subcat_desc) = 0 AND item_subcat_desc NOT IN ("ZZZ", "Dummy", "dummy")
-# MAGIC   AND isnull(maincat_desc) = 0 AND maincat_desc NOT IN ("ZZZ", "Dummy", "dummy")
+# MAGIC   AND isnull(item_subcat_desc) = 0 AND item_subcat_desc NOT IN ("ZZZ", "Dummy", "dummy", "GIFT", "gift")
+# MAGIC   AND isnull(maincat_desc) = 0 AND maincat_desc NOT IN ("ZZZ", "Dummy", "dummy", "GIFT")
 
 # COMMAND ----------
 

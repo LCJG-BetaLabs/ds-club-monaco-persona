@@ -256,8 +256,8 @@ df.createOrReplaceTempView("RawSales")
 # MAGIC     b.retail_price_hk,
 # MAGIC     b.retail_price_tw,
 # MAGIC     b.item_product_line_desc,
-# MAGIC     b.maincat_desc,
-# MAGIC     c.item_subcat_desc,
+# MAGIC     REPLACE(b.maincat_desc, '.', '_') AS maincat_desc,
+# MAGIC     REPLACE(c.item_subcat_desc, '.', '_') AS item_subcat_desc,
 # MAGIC     d.shop_desc
 # MAGIC   FROM
 # MAGIC     ClubMonacoSales a
