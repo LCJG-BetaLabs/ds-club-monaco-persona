@@ -50,16 +50,15 @@ sub_persona.createOrReplaceTempView("sub_persona0")
 # MAGIC %md
 # MAGIC persona
 # MAGIC
-# MAGIC 0&4:
+# MAGIC 0&1&2: Average Fashion Connoisseur
 # MAGIC
-# MAGIC 1&6: 
+# MAGIC 3: Prime Connoisseur
 # MAGIC
-# MAGIC 2: 
+# MAGIC 4: Menswear Specialist
 # MAGIC
-# MAGIC 3:
+# MAGIC 5: Outerwear Fashionista
 # MAGIC
-# MAGIC 5: 
-# MAGIC
+# MAGIC 6: Bottoms and Dresses Diva
 
 # COMMAND ----------
 
@@ -67,18 +66,18 @@ sub_persona.createOrReplaceTempView("sub_persona0")
 # MAGIC CREATE OR REPLACE TEMP VIEW persona AS
 # MAGIC SELECT
 # MAGIC   vip_main_no,
-# MAGIC   CASE WHEN persona = 0 THEN "P1"
-# MAGIC   WHEN persona = 1 THEN "P2"
-# MAGIC   WHEN persona = 2 THEN "P3"
-# MAGIC   WHEN persona = 3 THEN "P4"
-# MAGIC   WHEN persona = 4 THEN "P5" 
-# MAGIC   WHEN persona = 5 THEN "P6"
-# MAGIC   WHEN persona = 6 THEN "P7" END AS persona
+# MAGIC   CASE WHEN persona = 0 THEN "Average Fashion Connoisseur"
+# MAGIC   WHEN persona = 1 THEN "Average Fashion Connoisseur"
+# MAGIC   WHEN persona = 2 THEN "Average Fashion Connoisseur"
+# MAGIC   WHEN persona = 3 THEN "Prime Connoisseur"
+# MAGIC   WHEN persona = 4 THEN "Menswear Specialist"
+# MAGIC   WHEN persona = 5 THEN "Outerwear Fashionista"
+# MAGIC   WHEN persona = 6 THEN "Bottoms and Dresses Diva" END AS persona
 # MAGIC FROM persona1
 
 # COMMAND ----------
 
-cluster_order = ["P1", "P2", "P3", "P4", "P5", "P6", "P7"]
+cluster_order = ["Average Fashion Connoisseur", "Prime Connoisseur", "Menswear Specialist", "Outerwear Fashionista", "Bottoms and Dresses Diva"]
 
 # COMMAND ----------
 
@@ -251,13 +250,11 @@ table = count_pivot_table(df, group_by_col="customer_age_group", agg_col="vip_ma
 # MAGIC     when customer_age_group = '06' then '> 51'
 # MAGIC     when customer_age_group = '07' then null
 # MAGIC   else null end as age,
-# MAGIC   sum(`P1`),
-# MAGIC   sum(`P2`),
-# MAGIC   sum(`P3`),
-# MAGIC   sum(`P4`),
-# MAGIC   sum(`P5`),
-# MAGIC   sum(`P6`),
-# MAGIC   sum(`P7`)
+# MAGIC   sum(`Average Fashion Connoisseur`),
+# MAGIC   sum(`Prime Connoisseur`),
+# MAGIC   sum(`Menswear Specialist`),
+# MAGIC   sum(`Outerwear Fashionista`),
+# MAGIC   sum(`Bottoms and Dresses Diva`)
 # MAGIC
 # MAGIC from age_gp
 # MAGIC group by age
@@ -291,10 +288,6 @@ count_pivot_table(df, group_by_col="dummy", agg_col="invoice_no", show_inactive=
 # COMMAND ----------
 
 # # of visit
-count_pivot_table(df, group_by_col="dummy", agg_col="invoice_no", show_inactive=False)
-
-# COMMAND ----------
-
 visit = spark.sql(
     """with visit as (
 select
@@ -387,6 +380,7 @@ display(pivot_table)
 
 # COMMAND ----------
 
+# of new joiners
 df = spark.sql("""select
   distinct vip_main_no,
   new_joiner_flag,
@@ -415,7 +409,7 @@ from
   new_joiner
   inner join visit using (vip_main_no)
   inner join persona using (vip_main_no)
-where persona = "P1"
+where persona = "Average Fashion Connoisseur"
 """)
 
 df = df.groupBy("customer_tag", "visit").agg(f.countDistinct("vip_main_no").alias("count"))
@@ -476,13 +470,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC )
 # MAGIC PIVOT (
 # MAGIC   SUM(vip_count)
-# MAGIC   FOR customer_tag IN ('P1',
-# MAGIC  'P2',
-# MAGIC  'P3',
-# MAGIC  'P4',
-# MAGIC  'P5',
-# MAGIC  'P6',
-# MAGIC  'P7')
+# MAGIC   FOR customer_tag IN ('Average Fashion Connoisseur',
+# MAGIC  'Prime Connoisseur',
+# MAGIC  'Menswear Specialist',
+# MAGIC  'Outerwear Fashionista',
+# MAGIC  'Bottoms and Dresses Diva')
 # MAGIC ) 
 
 # COMMAND ----------
@@ -501,13 +493,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC )
 # MAGIC PIVOT (
 # MAGIC   SUM(amt)
-# MAGIC   FOR customer_tag IN ('P1',
-# MAGIC  'P2',
-# MAGIC  'P3',
-# MAGIC  'P4',
-# MAGIC  'P5',
-# MAGIC  'P6',
-# MAGIC  'P7')
+# MAGIC   FOR customer_tag IN ('Average Fashion Connoisseur',
+# MAGIC  'Prime Connoisseur',
+# MAGIC  'Menswear Specialist',
+# MAGIC  'Outerwear Fashionista',
+# MAGIC  'Bottoms and Dresses Diva')
 # MAGIC )
 
 # COMMAND ----------
@@ -538,13 +528,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC       customer_tag,
 # MAGIC       yyyymm
 # MAGIC   ) PIVOT (
-# MAGIC     SUM(vip_count) FOR customer_tag IN ('P1',
-# MAGIC  'P2',
-# MAGIC  'P3',
-# MAGIC  'P4',
-# MAGIC  'P5',
-# MAGIC  'P6',
-# MAGIC  'P7')
+# MAGIC     SUM(vip_count) FOR customer_tag IN ('Average Fashion Connoisseur',
+# MAGIC  'Prime Connoisseur',
+# MAGIC  'Menswear Specialist',
+# MAGIC  'Outerwear Fashionista',
+# MAGIC  'Bottoms and Dresses Diva')
 # MAGIC )
 
 # COMMAND ----------
@@ -573,19 +561,18 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC       customer_tag,
 # MAGIC       yyyymm
 # MAGIC   ) PIVOT (
-# MAGIC     SUM(amt) FOR customer_tag IN ('P1',
-# MAGIC  'P2',
-# MAGIC  'P3',
-# MAGIC  'P4',
-# MAGIC  'P5',
-# MAGIC  'P6',
-# MAGIC  'P7')
+# MAGIC     SUM(amt) FOR customer_tag IN ('Average Fashion Connoisseur',
+# MAGIC  'Prime Connoisseur',
+# MAGIC  'Menswear Specialist',
+# MAGIC  'Outerwear Fashionista',
+# MAGIC  'Bottoms and Dresses Diva')
 # MAGIC )
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC features based on brand, class, subclass
+# MAGIC features based on class, subclass
+# MAGIC
 
 # COMMAND ----------
 
@@ -614,13 +601,11 @@ def pivot_table_by_cat(group_by="item_subcat_desc_cleaned", agg_col="net_amt_hkd
             )
             PIVOT (
             SUM(overall_amount)
-            FOR customer_tag IN ('P1',
-            'P2',
-            'P3',
-            'P4',
-            'P5',
-            'P6',
-            'P7')
+            FOR customer_tag IN ('Average Fashion Connoisseur',
+                'Prime Connoisseur',
+                'Menswear Specialist',
+                'Outerwear Fashionista',
+                'Bottoms and Dresses Diva')
             )
         """
     )
@@ -668,59 +653,12 @@ pivot_table_by_cat(group_by="item_subcat_desc_cleaned", agg_col="distinct vip_ma
 
 # COMMAND ----------
 
-# by brand
-
-# COMMAND ----------
-
-# 1. amt table by brand and segment
-pivot_table_by_cat(group_by="prod_brand", agg_col="net_amt_hkd", mode="sum")
-
-# COMMAND ----------
-
-# 2. qty table by brand and segment
-pivot_table_by_cat(group_by="prod_brand", agg_col="sold_qty", mode="sum")
-
-# COMMAND ----------
-
-# 3. number of member purchase by brand and segment
-df = pivot_table_by_cat(group_by="prod_brand", agg_col="distinct vip_main_no", mode="count")
-
-# COMMAND ----------
-
-df.createOrReplaceTempView("brand")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- get brand desc
-# MAGIC select b.*, brand_desc from brand b left join imx_prd.imx_dw_train_silver.dbo_viw_lc_xxx_brand_brand on brand_code = prod_brand
-
-# COMMAND ----------
-
 # by maincat_desc
 
 # COMMAND ----------
 
 # 1. amt table by maincat_desc and segment
 pivot_table_by_cat(group_by="maincat_desc_cleaned", agg_col="net_amt_hkd", mode="sum")
-
-# COMMAND ----------
-
-dff = pivot_table_by_cat(group_by="maincat_desc_cleaned", agg_col="net_amt_hkd", mode="sum")
-column_totals = dff.agg(*[f.sum(f.col(col_name)).alias(col_name) for col_name in dff.columns[1:]])
-
-# Calculate the percentage of sales per column
-percentage_df = dff.select(
-    "maincat_desc_cleaned",
-    (f.col("P1") / column_totals.select("P1").collect()[0][0] * 100).alias("P1_percentage"),
-    (f.col("P2") / column_totals.select("P2").collect()[0][0] * 100).alias("P2_percentage"),
-    (f.col("P3") / column_totals.select("P3").collect()[0][0] * 100).alias("P3_percentage"),
-    (f.col("P4") / column_totals.select("P4").collect()[0][0] * 100).alias("P4_percentage"),
-    (f.col("P5") / column_totals.select("P5").collect()[0][0] * 100).alias("P5_percentage")
-)
-
-percentage_df.display()
-
 
 # COMMAND ----------
 
@@ -751,7 +689,7 @@ final_sales_table_with_tags.createOrReplaceTempView("final_sales_table_with_tags
 
 # COMMAND ----------
 
-# for another tagging parquet
+# tagging parquet for cross-class behaviour
 item_attr_1 = spark.read.parquet(os.path.join(base_dir, "item_attr_tagging1.parquet")).toPandas()
 item_attr_exploded_1 = item_attr_1.explode("tags")
 item_attr_exploded_spark_1 = spark.createDataFrame(item_attr_exploded_1)
@@ -769,7 +707,7 @@ pivot_table_by_cat(group_by="tags", agg_col="net_amt_hkd", mode="sum", table="fi
 
 # COMMAND ----------
 
-# 1. amt table by tag and segment
+# 1. amt table by tag and segment for cross-class behaviour
 pivot_table_by_cat(group_by="tags", agg_col="net_amt_hkd", mode="sum", table="final_sales_table_with_tags_1")
 
 # COMMAND ----------
@@ -779,7 +717,7 @@ pivot_table_by_cat(group_by="tags", agg_col="sold_qty", mode="sum", table="final
 
 # COMMAND ----------
 
-# 2. qty table by tag and segment
+# 2. qty table by tag and segment for cross-class behaviour
 pivot_table_by_cat(group_by="tags", agg_col="sold_qty", mode="sum", table="final_sales_table_with_tags_1")
 
 # COMMAND ----------

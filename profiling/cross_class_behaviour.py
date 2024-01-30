@@ -29,7 +29,7 @@ sub_persona.createOrReplaceTempView("sub_persona0")
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMP VIEW persona1 as
 # MAGIC SELECT a.vip_main_no,
-# MAGIC   CASE WHEN a.persona = 2 AND b.persona = 0 THEN 1
+# MAGIC   CASE WHEN a.persona = 2 AND b.persona = 0 THEN 2
 # MAGIC             WHEN a.persona = 2 AND b.persona = 1 THEN 5
 # MAGIC             WHEN a.persona = 2 AND b.persona = 2 THEN 6
 # MAGIC             ELSE a.persona
@@ -43,18 +43,18 @@ sub_persona.createOrReplaceTempView("sub_persona0")
 # MAGIC CREATE OR REPLACE TEMP VIEW persona AS
 # MAGIC SELECT
 # MAGIC   vip_main_no,
-# MAGIC   CASE WHEN persona = 0 THEN "P1"
-# MAGIC   WHEN persona = 1 THEN "P2"
-# MAGIC   WHEN persona = 2 THEN "P3"
-# MAGIC   WHEN persona = 3 THEN "P4"
-# MAGIC   WHEN persona = 4 THEN "P5" 
-# MAGIC   WHEN persona = 5 THEN "P6"
-# MAGIC   WHEN persona = 6 THEN "P7" END AS persona
+# MAGIC   CASE WHEN persona = 0 THEN "Average Fashion Connoisseur"
+# MAGIC   WHEN persona = 1 THEN "Average Fashion Connoisseur"
+# MAGIC   WHEN persona = 2 THEN "Average Fashion Connoisseur"
+# MAGIC   WHEN persona = 3 THEN "Prime Connoisseur"
+# MAGIC   WHEN persona = 4 THEN "Menswear Specialist"
+# MAGIC   WHEN persona = 5 THEN "Outerwear Fashionista"
+# MAGIC   WHEN persona = 6 THEN "Bottoms and Dresses Diva" END AS persona
 # MAGIC FROM persona1
 
 # COMMAND ----------
 
-cluster_order = ["P1", "P2", "P3", "P4", "P5", "P6", "P7"]
+cluster_order = ["Average Fashion Connoisseur", "Prime Connoisseur", "Menswear Specialist", "Outerwear Fashionista", "Bottoms and Dresses Diva"]
 
 # COMMAND ----------
 
@@ -120,7 +120,7 @@ import pandas as pd
 
 
 def get_cross_class_pivot_table(
-    persona="P1",
+    persona="Average Fashion Connoisseur",
     _class="maincat_desc_cleaned",
     aggfunc=lambda x: len(x.unique()),
     values="vip_main_no",
@@ -179,7 +179,7 @@ for i in range(5):
 # COMMAND ----------
 
 # amt
-for i in range(4):
+for i in range(5):
     df = get_cross_class_pivot_table(
         persona=cluster_order[i],
         _class="maincat_desc_cleaned",
@@ -204,7 +204,7 @@ final_sales_table_with_tags.createOrReplaceTempView("final_sales_table_with_tags
 # COMMAND ----------
 
 def get_cross_class_pivot_table_1(
-    persona="P1",
+    persona="Average Fashion Connoisseur",
     _class="tags",
     aggfunc=lambda x: len(x.unique()),
     values="vip_main_no",
@@ -240,7 +240,7 @@ def get_cross_class_pivot_table_1(
 # COMMAND ----------
 
 # vip count
-for i in range(7):
+for i in range(5):
     df = get_cross_class_pivot_table_1(
         persona=cluster_order[i],
         _class="tags",

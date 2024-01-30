@@ -117,7 +117,7 @@ plt.show()
 # COMMAND ----------
 
 # k-mean final
-kmeans = KMeans(n_clusters=5, n_init=5)
+kmeans = KMeans(n_clusters=4, n_init=5)
 kmeans.fit(features_embed)
 
 # COMMAND ----------
@@ -143,14 +143,14 @@ print(np.unique(kmeans.labels_, return_counts=True))
 # save result
 result_df = pd.DataFrame(np.concatenate((all_vip.reshape(-1, 1), kmeans.labels_.reshape(-1, 1)), axis=1),
                          columns=["vip_main_no", "persona"])
-spark.createDataFrame(result_df).write.parquet(os.path.join(model_dir, "clustering_result_kmeans_iter3.parquet"))
+spark.createDataFrame(result_df).write.parquet(os.path.join(model_dir, "clustering_result_kmeans_iter4.parquet"))
 
 # save model
-joblib.dump(kmeans, os.path.join("/dbfs" + model_dir, "kmeans_model3.pkl"))
+joblib.dump(kmeans, os.path.join("/dbfs" + model_dir, "kmeans_model4.pkl"))
 
 # COMMAND ----------
 
-subfeatures_embed = features_embed[kmeans.labels_ == 2]
+subfeatures_embed = features_embed[kmeans.labels_ == 0]
 
 # COMMAND ----------
 
@@ -197,10 +197,10 @@ print(np.unique(sub_kmeans.labels_, return_counts=True))
 # COMMAND ----------
 
 # save result
-subset_all_vip = result_df[result_df['persona'] == 2]['vip_main_no'].values
+subset_all_vip = result_df[result_df['persona'] == 0]['vip_main_no'].values
 sub_result_df = pd.DataFrame(np.concatenate((subset_all_vip.reshape(-1, 1), sub_kmeans.labels_.reshape(-1, 1)), axis=1),
                          columns=["vip_main_no", "persona"])
-spark.createDataFrame(sub_result_df).write.parquet(os.path.join(model_dir, "clustering_result_sub_kmeans_iter3.parquet"))
+spark.createDataFrame(sub_result_df).write.parquet(os.path.join(model_dir, "clustering_result_sub_kmeans_iter4.parquet"))
 
 # save model
-joblib.dump(sub_kmeans, os.path.join("/dbfs" + model_dir, "sub_kmeans_model3.pkl"))
+joblib.dump(sub_kmeans, os.path.join("/dbfs" + model_dir, "sub_kmeans_model4.pkl"))
