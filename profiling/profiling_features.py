@@ -77,7 +77,7 @@ sub_persona.createOrReplaceTempView("sub_persona0")
 
 # COMMAND ----------
 
-cluster_order = ["Average Fashion Connoisseur", "Prime Connoisseur", "Menswear Specialist", "Outerwear Fashionista", "Bottoms and Dresses Diva"]
+cluster_order = ["Prime Connoisseur", "Menswear Specialist", "Outerwear Fashionista", "Bottoms and Dresses Diva", "Average Fashion Connoisseur"]
 
 # COMMAND ----------
 
@@ -89,6 +89,7 @@ def sum_pivot_table(table, group_by_col, agg_col, show_inactive=True):
     )
     display(pivot_table.select(group_by_col, *cluster_order))
     return pivot_table
+    
 
 
 def count_pivot_table(table, group_by_col, agg_col, percentage=False, show_inactive=True):
@@ -126,6 +127,7 @@ def count_pivot_table(table, group_by_col, agg_col, percentage=False, show_inact
 # MAGIC SELECT * FROM Cte2
 # MAGIC WHERE prod_brand = "CM"
 # MAGIC AND maincat_desc_cleaned not in ("Unknown", "GIFT")
+# MAGIC AND sales_staff_flag = 0
 
 # COMMAND ----------
 
@@ -387,7 +389,7 @@ df = spark.sql("""select
   persona as customer_tag
 from
   new_joiner
-  inner join persona using (vip_main_no)
+  inner join persona using (vip_main_no) 
 """)
 
 df = df.groupBy("customer_tag", "new_joiner_flag").agg(f.countDistinct("vip_main_no").alias("count"))
@@ -470,11 +472,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC )
 # MAGIC PIVOT (
 # MAGIC   SUM(vip_count)
-# MAGIC   FOR customer_tag IN ('Average Fashion Connoisseur',
-# MAGIC  'Prime Connoisseur',
-# MAGIC  'Menswear Specialist',
-# MAGIC  'Outerwear Fashionista',
-# MAGIC  'Bottoms and Dresses Diva')
+# MAGIC   FOR customer_tag IN ('Prime Connoisseur',
+# MAGIC                 'Menswear Specialist',
+# MAGIC                 'Outerwear Fashionista',
+# MAGIC                 'Bottoms and Dresses Diva',
+# MAGIC                 'Average Fashion Connoisseur')
 # MAGIC ) 
 
 # COMMAND ----------
@@ -493,11 +495,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC )
 # MAGIC PIVOT (
 # MAGIC   SUM(amt)
-# MAGIC   FOR customer_tag IN ('Average Fashion Connoisseur',
-# MAGIC  'Prime Connoisseur',
-# MAGIC  'Menswear Specialist',
-# MAGIC  'Outerwear Fashionista',
-# MAGIC  'Bottoms and Dresses Diva')
+# MAGIC   FOR customer_tag IN ('Prime Connoisseur',
+# MAGIC                 'Menswear Specialist',
+# MAGIC                 'Outerwear Fashionista',
+# MAGIC                 'Bottoms and Dresses Diva',
+# MAGIC                 'Average Fashion Connoisseur')
 # MAGIC )
 
 # COMMAND ----------
@@ -528,11 +530,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC       customer_tag,
 # MAGIC       yyyymm
 # MAGIC   ) PIVOT (
-# MAGIC     SUM(vip_count) FOR customer_tag IN ('Average Fashion Connoisseur',
-# MAGIC  'Prime Connoisseur',
-# MAGIC  'Menswear Specialist',
-# MAGIC  'Outerwear Fashionista',
-# MAGIC  'Bottoms and Dresses Diva')
+# MAGIC     SUM(vip_count) FOR customer_tag IN ('Prime Connoisseur',
+# MAGIC                 'Menswear Specialist',
+# MAGIC                 'Outerwear Fashionista',
+# MAGIC                 'Bottoms and Dresses Diva',
+# MAGIC                 'Average Fashion Connoisseur')
 # MAGIC )
 
 # COMMAND ----------
@@ -561,11 +563,11 @@ sum_pivot_table(df, group_by_col="dummy", agg_col="net_amt_hkd")
 # MAGIC       customer_tag,
 # MAGIC       yyyymm
 # MAGIC   ) PIVOT (
-# MAGIC     SUM(amt) FOR customer_tag IN ('Average Fashion Connoisseur',
-# MAGIC  'Prime Connoisseur',
-# MAGIC  'Menswear Specialist',
-# MAGIC  'Outerwear Fashionista',
-# MAGIC  'Bottoms and Dresses Diva')
+# MAGIC     SUM(amt) FOR customer_tag IN ('Prime Connoisseur',
+# MAGIC                 'Menswear Specialist',
+# MAGIC                 'Outerwear Fashionista',
+# MAGIC                 'Bottoms and Dresses Diva',
+# MAGIC                 'Average Fashion Connoisseur')
 # MAGIC )
 
 # COMMAND ----------
@@ -601,11 +603,12 @@ def pivot_table_by_cat(group_by="item_subcat_desc_cleaned", agg_col="net_amt_hkd
             )
             PIVOT (
             SUM(overall_amount)
-            FOR customer_tag IN ('Average Fashion Connoisseur',
+            FOR customer_tag IN (
                 'Prime Connoisseur',
                 'Menswear Specialist',
                 'Outerwear Fashionista',
-                'Bottoms and Dresses Diva')
+                'Bottoms and Dresses Diva',
+                'Average Fashion Connoisseur')
             )
         """
     )
@@ -724,3 +727,117 @@ pivot_table_by_cat(group_by="tags", agg_col="sold_qty", mode="sum", table="final
 
 # 3. number of member purchase by tag and segment
 pivot_table_by_cat(group_by="tags", agg_col="distinct vip_main_no", mode="count", table="final_sales_table_with_tags")
+
+# COMMAND ----------
+
+# first purchase
+
+# COMMAND ----------
+
+# MAGIC %sql select * from first_purchase
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql select * from final_sales_table
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC create or replace temp view f_pur_item as 
+# MAGIC select vip_main_no, item_desc, customer_tag,net_amt_hkd from final_sales_table
+# MAGIC left join first_purchase
+# MAGIC using (vip_main_no)
+# MAGIC where item_desc in
+# MAGIC ('KORA CAMI',
+# MAGIC 'BOWEE TEE',
+# MAGIC 'BORREM PANT',
+# MAGIC 'REMI PANT',
+# MAGIC 'BORREM BLAZER',
+# MAGIC 'LD SS RIBBED CARDI',
+# MAGIC 'LD SILK RIB TOP',
+# MAGIC 'HELEK SHIRT',
+# MAGIC 'CENTIE SKIRT',
+# MAGIC 'LAYER'
+# MAGIC )
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC select vip_main_no, item_desc, customer_tag, net_amt_hkd from final_sales_table
+# MAGIC left join first_purchase
+# MAGIC using (vip_main_no)
+
+# COMMAND ----------
+
+def pivot_table_by_item(group_by="item_desc", agg_col="vip_main_no", mode="count",
+                       table="f_pur_item"):
+    df = spark.sql(
+        f"""
+        select * from
+            (select 
+                distinct 
+                case when isnull({group_by}) = 1 or {group_by} = "N/A" then "Unknown" else {group_by} end as {group_by},
+                customer_tag, 
+                {mode}({agg_col}) as overall_amount
+            from {table}
+            group by 
+                customer_tag,
+                {group_by}
+            )
+            PIVOT (
+            SUM(overall_amount)
+            FOR customer_tag IN (
+                'Prime Connoisseur',
+                'Menswear Specialist',
+                'Outerwear Fashionista',
+                'Bottoms and Dresses Diva',
+                'Average Fashion Connoisseur')
+            )
+        """
+    )
+    display(df)
+    return df
+
+
+# COMMAND ----------
+
+pivot_table_by_item(group_by="item_desc", agg_col="distinct vip_main_no", mode="count", table="f_pur_item")
+
+# COMMAND ----------
+
+pivot_table_by_cat(group_by="item_desc", agg_col="net_amt_hkd", mode="sum", table="f_pur_item")
+
+# COMMAND ----------
+
+def pivot_table_by_item(group_by="item_desc", agg_col="vip_main_no", mode="count",
+                       table="f_pur_item"):
+    df = spark.sql(
+        f"""
+        select * from
+            (select 
+                distinct 
+                case when isnull({group_by}) = 1 or {group_by} = "N/A" then "Unknown" else {group_by} end as {group_by},
+                customer_tag, 
+                {mode}({agg_col}) as overall_amount
+            from {table}
+            group by 
+                customer_tag,
+                {group_by}
+            )
+            PIVOT (
+            SUM(overall_amount)
+            FOR customer_tag IN (
+                'Prime Connoisseur',
+                'Menswear Specialist',
+                'Outerwear Fashionista',
+                'Bottoms and Dresses Diva',
+                'Average Fashion Connoisseur')
+            )
+        """
+    )
+    display(df)
+    return df
+

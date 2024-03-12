@@ -1,26 +1,32 @@
 # Databricks notebook source
+dbutils.widgets.removeAll()
+dbutils.widgets.text("start_date", "")
+dbutils.widgets.text("end_date", "")
+dbutils.widgets.text("base_dir", "")
+
+# COMMAND ----------
+
 import os
 import pandas as pd
 import pyspark.sql.functions as f
 
-base_dir = "/mnt/dev/customer_segmentation/imx/club_monaco/datamart"
+datamart_dir = dbutils.widgets.get("base_dir") + "/datamart"
 
-sales = spark.read.parquet(os.path.join(base_dir, "transaction.parquet"))
-vip = spark.read.parquet(os.path.join(base_dir, "demographic.parquet"))
-first_purchase = spark.read.parquet(os.path.join(base_dir, "first_purchase.parquet"))
-item_attr_tagging = spark.read.parquet(os.path.join(base_dir, "item_attr_tagging.parquet"))
+sales = spark.read.parquet(os.path.join(datamart_dir, "transaction.parquet"))
+vip = spark.read.parquet(os.path.join(datamart_dir, "demographic.parquet"))
+first_purchase = spark.read.parquet(os.path.join(datamart_dir, "first_purchase.parquet"))
+# item_attr_tagging = spark.read.parquet(os.path.join(datamart_dir, "item_attr_tagging.parquet"))
+item_attr_tagging = spark.read.parquet("/mnt/dev/customer_segmentation/imx/club_monaco/datamart/item_attr_tagging.parquet")
 
 # COMMAND ----------
 
-feature_dir = "/mnt/dev/customer_segmentation/imx/club_monaco/features"
+feature_dir = dbutils.widgets.get("base_dir") + "/features"
 os.makedirs(feature_dir, exist_ok=True)
-
 
 # COMMAND ----------
 
 def save_feature_df(df, filename):
     df.write.parquet(os.path.join(feature_dir, f"{filename}.parquet"), mode="overwrite")
-
 
 # COMMAND ----------
 
@@ -46,7 +52,6 @@ first_purchase.createOrReplaceTempView("first_purchase")
 # COMMAND ----------
 
 sales = spark.table("sales")
-
 
 # COMMAND ----------
 
@@ -112,7 +117,7 @@ demographic = spark.sql("""with tenure as (
     first_pur_cm,
     round(
       datediff(
-        TO_DATE("20231231", "yyyyMMdd"),
+        TO_DATE(CONCAT(YEAR(getArgument("start_date")),'1231'), "yyyyMMdd"),
         first_pur_cm
       ) / 365,
       0

@@ -1,9 +1,16 @@
 # Databricks notebook source
+dbutils.widgets.removeAll()
+dbutils.widgets.text("start_date", "")
+dbutils.widgets.text("end_date", "")
+dbutils.widgets.text("base_dir", "")
+
+# COMMAND ----------
+
 import os
 
-base_dir = "/mnt/dev/customer_segmentation/imx/club_monaco/datamart"
+datamart_dir = dbutils.widgets.get("base_dir") + "/datamart"
 
-sales = spark.read.parquet(os.path.join(base_dir, "transaction.parquet"))
+sales = spark.read.parquet(os.path.join(datamart_dir, "transaction.parquet"))
 sales.createOrReplaceTempView("sales")
 item_attr = spark.sql("SELECT DISTINCT item_desc, maincat_desc, item_subcat_desc FROM sales").toPandas()
 
@@ -56,7 +63,7 @@ keywords = {
 }
 
 item_attr["tags"] = item_attr.apply(lambda row: tagging_1(row["maincat_desc"].lower(), row["tags"]) if row["maincat_desc"] is not None else row["tags"], axis=1)
-spark.createDataFrame(item_attr).write.parquet(os.path.join(base_dir, "item_attr_tagging.parquet"), mode="overwrite")
+spark.createDataFrame(item_attr).write.parquet(os.path.join(datamart_dir, "item_attr_tagging.parquet"), mode="overwrite")
 
 # COMMAND ----------
 
@@ -72,8 +79,4 @@ keywords = {
 }
 
 item_attr["tags"] = item_attr["maincat_desc"].apply(lambda x: tagging(x.lower()) if x is not None else [])
-spark.createDataFrame(item_attr).write.parquet(os.path.join(base_dir, "item_attr_tagging1.parquet"), mode="overwrite")
-
-# COMMAND ----------
-
-item_attr.display()
+spark.createDataFrame(item_attr).write.parquet(os.path.join(datamart_dir, "item_attr_tagging1.parquet"), mode="overwrite")
