@@ -117,7 +117,7 @@ demographic = spark.sql("""with tenure as (
     first_pur_cm,
     round(
       datediff(
-        TO_DATE(CONCAT(YEAR(current_date()),'1231'), "yyyyMMdd"),
+        TO_DATE(current_date(), "yyyyMMdd"),
         first_pur_cm
       ) / 365,
       0
