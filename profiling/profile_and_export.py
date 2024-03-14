@@ -352,7 +352,7 @@ tracker_email_body = (
 )
 tracker_email_subject = f"Persona of Club Monaco - SOW in {quarter_year} Q{quarter_no}"
 send_email(
-    ["seanchan@lanecrawford.com"], #, "arnabmaulik@lcjgroup.com"],
+    ["seanchan@lanecrawford.com", "arnabmaulik@lcjgroup.com"],
     tracker_email_subject,
     tracker_email_body,
     attachments = [os.path.join(output_dir, "club_monacoo_customer_list.csv")],
