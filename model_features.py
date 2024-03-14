@@ -10,7 +10,7 @@ import os
 import pandas as pd
 import pyspark.sql.functions as f
 
-datamart_dir = dbutils.widgets.get("base_dir") + "/datamart"
+datamart_dir = os.path.join(dbutils.widgets.get("base_dir"), "datamart")
 
 sales = spark.read.parquet(os.path.join(datamart_dir, "transaction.parquet"))
 vip = spark.read.parquet(os.path.join(datamart_dir, "demographic.parquet"))
