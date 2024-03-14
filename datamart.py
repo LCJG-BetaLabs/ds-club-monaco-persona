@@ -1,8 +1,10 @@
 # Databricks notebook source
 # MAGIC %py
 # MAGIC dbutils.widgets.removeAll()
-# MAGIC dbutils.widgets.text("start_date", "2023-01-01")
-# MAGIC dbutils.widgets.text("end_date", "2023-12-31")
+# MAGIC dbutils.widgets.text("start_date", "")
+# MAGIC dbutils.widgets.text("end_date", "")
+# MAGIC dbutils.widgets.text("base_dir", "")
+# MAGIC
 
 # COMMAND ----------
 
@@ -256,8 +258,8 @@ df.createOrReplaceTempView("RawSales")
 # MAGIC     b.retail_price_hk,
 # MAGIC     b.retail_price_tw,
 # MAGIC     b.item_product_line_desc,
-# MAGIC     b.maincat_desc,
-# MAGIC     c.item_subcat_desc,
+# MAGIC     REPLACE(b.maincat_desc, '.', '_') AS maincat_desc,
+# MAGIC     REPLACE(c.item_subcat_desc, '.', '_') AS item_subcat_desc,
 # MAGIC     d.shop_desc
 # MAGIC   FROM
 # MAGIC     ClubMonacoSales a
@@ -276,7 +278,6 @@ df.createOrReplaceTempView("RawSales")
 # MAGIC   AND region_key = 'HK'
 # MAGIC   AND valid_tx_flag = 1
 # MAGIC   AND isnull(void_flag) = 1
-# MAGIC
 
 # COMMAND ----------
 
@@ -395,14 +396,11 @@ df.createOrReplaceTempView("RawSales")
 
 # COMMAND ----------
 
-# DBTITLE 1,Output
-# save to imx_dev
-# save as parquet for now
-import os
-
-base_dir = "/mnt/dev/customer_segmentation/imx/club_monaco/datamart"
-os.makedirs(base_dir, exist_ok=True)
-
-spark.table("CMSalesProduct").write.parquet(os.path.join(base_dir, "transaction.parquet"), mode="overwrite")
-spark.table("CMSalesVip").write.parquet(os.path.join(base_dir, "demographic.parquet"), mode="overwrite")
-spark.table("first_purchase").write.parquet(os.path.join(base_dir, "first_purchase.parquet"), mode="overwrite")
+# MAGIC %py
+# MAGIC import os
+# MAGIC datamart_dir = os.path.join(dbutils.widgets.get("base_dir"), "datamart")
+# MAGIC os.makedirs(datamart_dir, exist_ok=True)
+# MAGIC
+# MAGIC spark.table("CMSalesProduct").write.parquet(os.path.join(datamart_dir, "transaction.parquet"), mode="overwrite")
+# MAGIC spark.table("CMSalesVip").write.parquet(os.path.join(datamart_dir, "demographic.parquet"), mode="overwrite")
+# MAGIC spark.table("first_purchase").write.parquet(os.path.join(datamart_dir, "first_purchase.parquet"), mode="overwrite")

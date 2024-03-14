@@ -1,26 +1,32 @@
 # Databricks notebook source
+dbutils.widgets.removeAll()
+dbutils.widgets.text("start_date", "")
+dbutils.widgets.text("end_date", "")
+dbutils.widgets.text("base_dir", "")
+
+# COMMAND ----------
+
 import os
 import pandas as pd
 import pyspark.sql.functions as f
 
-base_dir = "/mnt/dev/customer_segmentation/imx/club_monaco/datamart"
+datamart_dir = os.path.join(dbutils.widgets.get("base_dir"), "datamart")
 
-sales = spark.read.parquet(os.path.join(base_dir, "transaction.parquet"))
-vip = spark.read.parquet(os.path.join(base_dir, "demographic.parquet"))
-first_purchase = spark.read.parquet(os.path.join(base_dir, "first_purchase.parquet"))
-item_attr_tagging = spark.read.parquet(os.path.join(base_dir, "item_attr_tagging.parquet"))
+sales = spark.read.parquet(os.path.join(datamart_dir, "transaction.parquet"))
+vip = spark.read.parquet(os.path.join(datamart_dir, "demographic.parquet"))
+first_purchase = spark.read.parquet(os.path.join(datamart_dir, "first_purchase.parquet"))
+# item_attr_tagging = spark.read.parquet(os.path.join(datamart_dir, "item_attr_tagging.parquet"))
+item_attr_tagging = spark.read.parquet("/mnt/prd/customer_segmentation/imx/club_monaco/train/datamart/item_attr_tagging.parquet")
 
 # COMMAND ----------
 
-feature_dir = "/mnt/dev/customer_segmentation/imx/club_monaco/features"
+feature_dir = os.path.join(dbutils.widgets.get("base_dir"), "features")
 os.makedirs(feature_dir, exist_ok=True)
-
 
 # COMMAND ----------
 
 def save_feature_df(df, filename):
     df.write.parquet(os.path.join(feature_dir, f"{filename}.parquet"), mode="overwrite")
-
 
 # COMMAND ----------
 
@@ -34,19 +40,18 @@ first_purchase.createOrReplaceTempView("first_purchase")
 # MAGIC CREATE OR REPLACE TEMP VIEW sales AS
 # MAGIC SELECT 
 # MAGIC   *,
-# MAGIC   CASE WHEN item_subcat_desc = "gift" THEN "GIFT" ELSE item_subcat_desc END AS item_subcat_desc_cleaned,
+# MAGIC   item_subcat_desc AS item_subcat_desc_cleaned,
 # MAGIC   maincat_desc AS maincat_desc_cleaned
 # MAGIC FROM sales0
 # MAGIC WHERE
 # MAGIC   isnull(vip_main_no) = 0 AND vip_main_no != ""
 # MAGIC   AND isnull(prod_brand) = 0 AND prod_brand NOT IN ("JBZZZ", "ZZ")
-# MAGIC   AND isnull(item_subcat_desc) = 0 AND item_subcat_desc NOT IN ("ZZZ", "Dummy", "dummy")
-# MAGIC   AND isnull(maincat_desc) = 0 AND maincat_desc NOT IN ("ZZZ", "Dummy", "dummy")
+# MAGIC   AND isnull(item_subcat_desc) = 0 AND item_subcat_desc NOT IN ("ZZZ", "Dummy", "dummy", "GIFT", "gift")
+# MAGIC   AND isnull(maincat_desc) = 0 AND maincat_desc NOT IN ("ZZZ", "Dummy", "dummy", "GIFT")
 
 # COMMAND ----------
 
 sales = spark.table("sales")
-
 
 # COMMAND ----------
 
@@ -112,7 +117,7 @@ demographic = spark.sql("""with tenure as (
     first_pur_cm,
     round(
       datediff(
-        TO_DATE("20231231", "yyyyMMdd"),
+        TO_DATE(current_date(), "yyyyMMdd"),
         first_pur_cm
       ) / 365,
       0
