@@ -397,9 +397,6 @@ df.createOrReplaceTempView("RawSales")
 # COMMAND ----------
 
 # MAGIC %py
-# MAGIC # save to imx_dev
-# MAGIC # save as parquet for now
-# MAGIC
 # MAGIC import os
 # MAGIC datamart_dir = os.path.join(dbutils.widgets.get("base_dir"), "datamart")
 # MAGIC os.makedirs(datamart_dir, exist_ok=True)
@@ -407,8 +404,3 @@ df.createOrReplaceTempView("RawSales")
 # MAGIC spark.table("CMSalesProduct").write.parquet(os.path.join(datamart_dir, "transaction.parquet"), mode="overwrite")
 # MAGIC spark.table("CMSalesVip").write.parquet(os.path.join(datamart_dir, "demographic.parquet"), mode="overwrite")
 # MAGIC spark.table("first_purchase").write.parquet(os.path.join(datamart_dir, "first_purchase.parquet"), mode="overwrite")
-
-# COMMAND ----------
-
-vip = spark.read.parquet("/mnt/dev/customer_segmentation/imx/club_monaco/datamart/demographic.parquet")
-vip.createOrReplaceTempView("vip")

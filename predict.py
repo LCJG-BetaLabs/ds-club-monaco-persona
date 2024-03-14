@@ -44,7 +44,7 @@ for path in files:
 
 # COMMAND ----------
 
-# manual select feature
+features_df = features_df.fillna(0)
 features_to_keep = ['vip_main_no',
  'brand_CM_qty',
  'maincat_W_BOTTOMS_qty',
@@ -87,49 +87,40 @@ standardized_df = np.nan_to_num(standardized_df)
 
 # COMMAND ----------
 
-# FactorAnalysis
-n_components = 10
-
-fa = FactorAnalysis(n_components=n_components)
-fa.fit(standardized_df)
-
-factor_loadings = fa.components_
-selected_features = np.abs(factor_loadings).sum(axis=0).argsort()[:n_components]
-
-# COMMAND ----------
-
 selected_features = [14,  0, 13, 18, 17, 12, 15,  9,  8, 16]
 
 # COMMAND ----------
 
-np.array(feature_cols)[np.array(selected_features)]
+# MAGIC %md
+# MAGIC selected feature:
+# MAGIC ```python
+# MAGIC array(['tag_NON_STRIPE_PATTERN_qty', 'brand_CM_qty', 'tag_MW_qty',
+# MAGIC        'tag_WW_qty', 'tag_TOP_qty', 'tag_BOTTOM_qty',
+# MAGIC        'tag_OTHER_FABRIC_qty', 'subcat_W_FULL LENGTH PANTS_qty',
+# MAGIC        'subcat_3rd PARTY_qty', 'tag_OUTERWEAR_qty'], dtype='<U31')
+# MAGIC ```
 
 # COMMAND ----------
 
-factor_table = pd.DataFrame(factor_loadings.T, index=np.array(feature_cols))
 features_embed = standardized_df[:, selected_features]
 
 # COMMAND ----------
 
 import joblib
 from sklearn.cluster import KMeans
-kmeans = joblib.load("/dbfs/mnt/dev/customer_segmentation/imx/club_monaco/model/kmeans_model3.pkl")
+kmeans = joblib.load("/dbfs/mnt/prd/customer_segmentation/imx/club_monaco/train/model/kmeans_model3.pkl")
 cluster_assignment = kmeans.predict(features_embed)
 
 # COMMAND ----------
 
 result_df = pd.DataFrame(np.concatenate((all_vip.reshape(-1, 1), cluster_assignment.reshape(-1, 1)), axis=1),
                          columns=["vip_main_no", "persona"])
-result_df["persona"].value_counts()
-
-# COMMAND ----------
-
 spark.createDataFrame(result_df).write.parquet(os.path.join(model_dir, "clustering_result.parquet"), mode="overwrite")
 
 # COMMAND ----------
 
 subfeatures_embed = features_embed[cluster_assignment == 2]
-sub_kmeans = joblib.load(os.path.join("/dbfs/mnt/dev/customer_segmentation/imx/club_monaco/model/sub_kmeans_model3.pkl"))
+sub_kmeans = joblib.load(os.path.join("/dbfs/mnt/prd/customer_segmentation/imx/club_monaco/train/model/sub_kmeans_model3.pkl"))
 subcluster_assignment = sub_kmeans.predict(subfeatures_embed)
 
 # COMMAND ----------
@@ -142,7 +133,3 @@ sub_result_df = pd.DataFrame(np.concatenate((subset_all_vip.reshape(-1, 1), subc
 
 # save result
 spark.createDataFrame(sub_result_df).write.parquet(os.path.join(model_dir, "clustering_sub_result.parquet"), mode="overwrite")
-
-# COMMAND ----------
-
-sub_result_df["persona"].value_counts()

@@ -25,7 +25,6 @@ model_dir = os.path.join(dbutils.widgets.get("base_dir"), "model")
 persona = spark.read.parquet(os.path.join(model_dir, "clustering_result.parquet"))
 persona.createOrReplaceTempView("persona0")
 
-
 # COMMAND ----------
 
 sub_persona = spark.read.parquet(os.path.join(model_dir, "clustering_sub_result.parquet"))
@@ -73,6 +72,53 @@ sub_persona.createOrReplaceTempView("sub_persona0")
 # MAGIC   WHEN persona = 5 THEN "Outerwear Fashionista"
 # MAGIC   WHEN persona = 6 THEN "Bottoms and Dresses Diva" END AS persona
 # MAGIC FROM persona1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMP VIEW imx_vip AS
+# MAGIC SELECT 
+# MAGIC DISTINCT 
+# MAGIC vip_main_no,
+# MAGIC vip_opt_in,
+# MAGIC vip_no_sms,
+# MAGIC vip_no_phone,
+# MAGIC vip_no_edm
+# MAGIC FROM (
+# MAGIC   SELECT *,
+# MAGIC     ROW_NUMBER() OVER (PARTITION BY vip_main_no ORDER BY vip_last_modified_date DESC NULLS FIRST, vip_type_start_date DESC, 
+# MAGIC     vip_card_issue_date DESC) AS rn
+# MAGIC   FROM imx_prd.imx_dw_train_silver.dbo_viw_lc_sales_vip v1
+# MAGIC   WHERE vip_brand_code = 'BA'
+# MAGIC     AND region_key = 'HK'
+# MAGIC ) AS subquery
+# MAGIC WHERE rn = 1;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMP VIEW vip_list AS
+# MAGIC SELECT 
+# MAGIC   current_date() as date_of_run,
+# MAGIC   a.vip_main_no,
+# MAGIC   persona,
+# MAGIC   vip_opt_in,
+# MAGIC   vip_no_sms,
+# MAGIC   vip_no_phone,
+# MAGIC   vip_no_edm
+# MAGIC FROM persona a
+# MAGIC LEFT JOIN imx_vip b
+# MAGIC   ON a.vip_main_no = b.vip_main_no
+
+# COMMAND ----------
+
+vip_list_df = spark.sql("SELECT * FROM vip_list").toPandas()
+
+# COMMAND ----------
+
+output_dir = os.path.join("/dbfs" + dbutils.widgets.get("base_dir"), "output")
+os.makedirs(output_dir, exist_ok=True)
+vip_list_df.to_csv(os.path.join(output_dir, "club_monacoo_customer_list.csv"), index=False)
 
 # COMMAND ----------
 
@@ -304,10 +350,11 @@ tracker_email_body = (
     + "<br><br><b>Persona SOW by subcat:</b><br><br>"
     + subcat_df.to_html(index=False)
 )
-tracker_email_subject = f"Club Monaco - SOW in {quarter_year} Q{quarter_no}"
+tracker_email_subject = f"Persona of Club Monaco - SOW in {quarter_year} Q{quarter_no}"
 send_email(
-    ["seanchan@lanecrawford.com", "arnabmaulik@lcjgroup.com"],
+    ["seanchan@lanecrawford.com"], #, "arnabmaulik@lcjgroup.com"],
     tracker_email_subject,
     tracker_email_body,
+    attachments = [os.path.join(output_dir, "club_monacoo_customer_list.csv")],
     scope='ds-secret'
 )

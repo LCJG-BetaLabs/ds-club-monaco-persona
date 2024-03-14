@@ -9,7 +9,7 @@ quarter_no = spark.sql(f"SELECT quarter('{end_date}')").collect()[0][0]
 
 # COMMAND ----------
 
-base_dir_no_dbfs = f"/mnt/prd/customer_segmentation/imx/club_monaco/{end_date.year}_testing/Q{quarter_no}"
+base_dir_no_dbfs = f"/mnt/prd/customer_segmentation/imx/club_monaco/{end_date.year}/Q{quarter_no}"
 base_dir = "/dbfs" + base_dir_no_dbfs
 start_date = start_date.strftime("%Y-%m-%d")
 end_date = end_date.strftime("%Y-%m-%d")
@@ -18,7 +18,7 @@ end_date = end_date.strftime("%Y-%m-%d")
 
 jobs = [
     {
-        "notebook_path": "../workflow/datamart",
+        "notebook_path": "./datamart",
         "arguments": {
             "base_dir": base_dir_no_dbfs, 
             "start_date": start_date,
@@ -26,7 +26,7 @@ jobs = [
             },
     },
     {
-        "notebook_path": "../workflow/tagging",
+        "notebook_path": "./tagging",
         "arguments": {
             "base_dir": base_dir_no_dbfs,
             "start_date": start_date,
@@ -34,7 +34,7 @@ jobs = [
             },
     },
     {
-        "notebook_path": "../workflow/model_features",
+        "notebook_path": "./model_features",
         "arguments": {
             "base_dir": base_dir_no_dbfs,
             "start_date": start_date,
@@ -42,7 +42,7 @@ jobs = [
             },
     },
     {
-        "notebook_path": "../workflow/clustering",
+        "notebook_path": "./predict",
         "arguments": {
             "base_dir": base_dir_no_dbfs,
             "start_date": start_date,
@@ -50,7 +50,7 @@ jobs = [
             },
     },
     {
-        "notebook_path": "../workflow/profiling/profile_and_export",
+        "notebook_path": "./profiling/profile_and_export",
         "arguments": {
             "base_dir": base_dir_no_dbfs,
             "start_date": start_date,

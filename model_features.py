@@ -16,11 +16,11 @@ sales = spark.read.parquet(os.path.join(datamart_dir, "transaction.parquet"))
 vip = spark.read.parquet(os.path.join(datamart_dir, "demographic.parquet"))
 first_purchase = spark.read.parquet(os.path.join(datamart_dir, "first_purchase.parquet"))
 # item_attr_tagging = spark.read.parquet(os.path.join(datamart_dir, "item_attr_tagging.parquet"))
-item_attr_tagging = spark.read.parquet("/mnt/dev/customer_segmentation/imx/club_monaco/datamart/item_attr_tagging.parquet")
+item_attr_tagging = spark.read.parquet("/mnt/prd/customer_segmentation/imx/club_monaco/train/datamart/item_attr_tagging.parquet")
 
 # COMMAND ----------
 
-feature_dir = dbutils.widgets.get("base_dir") + "/features"
+feature_dir = os.path.join(dbutils.widgets.get("base_dir"), "features")
 os.makedirs(feature_dir, exist_ok=True)
 
 # COMMAND ----------
@@ -117,7 +117,7 @@ demographic = spark.sql("""with tenure as (
     first_pur_cm,
     round(
       datediff(
-        TO_DATE(CONCAT(YEAR(getArgument("start_date")),'1231'), "yyyyMMdd"),
+        TO_DATE(CONCAT(YEAR(current_date()),'1231'), "yyyyMMdd"),
         first_pur_cm
       ) / 365,
       0

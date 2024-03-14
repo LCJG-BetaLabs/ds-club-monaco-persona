@@ -8,7 +8,7 @@ dbutils.widgets.text("base_dir", "")
 
 import os
 
-datamart_dir = dbutils.widgets.get("base_dir") + "/datamart"
+datamart_dir = os.path.join(dbutils.widgets.get("base_dir"), "datamart")
 
 sales = spark.read.parquet(os.path.join(datamart_dir, "transaction.parquet"))
 sales.createOrReplaceTempView("sales")
@@ -25,7 +25,7 @@ def tagging(desc):
                 tags.append(k.upper())
     return tags
 
-def tagging_1(desc, current_tags):
+def add_tagging(desc, current_tags):
     tags = current_tags.copy()
     for k, v in keywords.items():
         for keyword in v:
@@ -62,7 +62,7 @@ keywords = {
     "accessories": ["mens accessories", "womens accessories", "home accessories"]
 }
 
-item_attr["tags"] = item_attr.apply(lambda row: tagging_1(row["maincat_desc"].lower(), row["tags"]) if row["maincat_desc"] is not None else row["tags"], axis=1)
+item_attr["tags"] = item_attr.apply(lambda row: add_tagging(row["maincat_desc"].lower(), row["tags"]) if row["maincat_desc"] is not None else row["tags"], axis=1)
 spark.createDataFrame(item_attr).write.parquet(os.path.join(datamart_dir, "item_attr_tagging.parquet"), mode="overwrite")
 
 # COMMAND ----------
